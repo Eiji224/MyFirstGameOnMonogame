@@ -20,7 +20,7 @@ public static class CoinGenerator
             coinRect.X = _randomizer.Next(0, screenWidth - coinRect.Width);
             coinRect.Y = _randomizer.Next(0, screenHeight - coinRect.Height);
 
-            areCoordinatesUnique = coins.All(coin => !coin.Position.Intersects(coinRect));
+            areCoordinatesUnique = coins.All(coin => !coin.SpriteRect.Intersects(coinRect));
         }
         while (!areCoordinatesUnique);
     

@@ -39,8 +39,6 @@ public class Game1 : Game
         
         _coins = new List<Sprite>();
         
-        //CoinGenerator.GenerateCoin(_coins, _coinTexture, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-        
         base.Initialize();
     }
 
@@ -79,10 +77,10 @@ public class Game1 : Game
 
         _spriteBatch.Draw(_background,
             new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
-        _spriteBatch.Draw(_playerSprite.Texture, _playerSprite.Position, Color.White);
+        _spriteBatch.Draw(_playerSprite.Texture, _playerSprite.SpriteRect, Color.White);
         foreach (var coin in _coins)
         {
-            _spriteBatch.Draw(coin.Texture, coin.Position, Color.White);
+            _spriteBatch.Draw(coin.Texture, coin.SpriteRect, Color.White);
         }
         
         _spriteBatch.End();
@@ -94,7 +92,7 @@ public class Game1 : Game
     {
         for (var i = 0; i < _coins.Count; i++)
         {
-            if (_playerSprite.Position.Intersects(_coins[i].Position))
+            if (_playerSprite.SpriteRect.Intersects(_coins[i].SpriteRect))
             {
                 _coins.Remove(_coins[i]);
             }

@@ -6,14 +6,14 @@ namespace MyGame;
 public class Sprite()
 {
     public Texture2D Texture { get; }
-    public Rectangle Position { get; set; }
+    public Rectangle SpriteRect { get; set; }
 
-    public Sprite(Texture2D texture, Rectangle position) : this()
+    public Sprite(Texture2D texture, Rectangle spriteRect) : this()
     {
         Texture = texture;
-        Position = position;
+        SpriteRect = spriteRect;
     }
 
-    public void MoveTo(int x, int y) => Position = new Rectangle(Position.X + x, Position.Y + y,
-        Position.Width, Position.Height);
+    public void MoveTo(int x, int y) => SpriteRect = new Rectangle(SpriteRect.X + x, SpriteRect.Y + y,
+        SpriteRect.Width, SpriteRect.Height);
 }
