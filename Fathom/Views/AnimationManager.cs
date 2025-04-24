@@ -1,27 +1,30 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Fathom;
 
 public class AnimationManager
 {
-    private readonly Texture2D _spriteSheet;
     private readonly int _startFrame;
     private readonly int _endFrame;
-    private readonly Point _frameSize;
     
     private int _activeFrame;
     private float _frameTime;
-    private float _frameDelay;
+    private readonly float _frameDelay;
+    
+    private readonly Dictionary<int, Rectangle> _frames; // Целесообразно ли кэшировать Rectangles??
 
-    public AnimationManager(Texture2D spriteSheet, int startFrame, int endFrame, Point frameSize, float frameDelay)
+    public AnimationManager(int startFrame, int endFrame, Point frameSize, float frameDelay)
     {
-        _spriteSheet = spriteSheet;
         _startFrame = startFrame;
         _endFrame = endFrame;
-        _frameSize = frameSize;
         _activeFrame = startFrame;
         _frameDelay = frameDelay;
+        
+        _frames = new Dictionary<int, Rectangle>(); // Целесообразно ли кэшировать Rectangles??
+        for (var i = startFrame; i <= endFrame; i++)
+            _frames.Add(i, new Rectangle(i * frameSize.X, 0, frameSize.X, frameSize.Y));
     }
 
     public void UpdateAnimationFrame(GameTime gameTime)
@@ -36,26 +39,12 @@ public class AnimationManager
                 _activeFrame = _startFrame;
         }
     }
-
-    public void DrawAnimation(SpriteBatch spriteBatch, Vector2 position, bool isFlipped = false)
-    {
-        var flipEffect = isFlipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-        
-        spriteBatch.Draw(
-            _spriteSheet,
-            new Rectangle((int)position.X, (int)position.Y, _frameSize.X, _frameSize.Y),
-            new Rectangle(_activeFrame * _frameSize.X, 0, _frameSize.X, _frameSize.Y),
-            Color.White,
-            0f,
-            Vector2.Zero,
-            flipEffect,
-            0f
-        );
-    }
-
-    public void ResetAnimation()
+    
+    public void ResetAnimationFrame()
     {
         _activeFrame = _startFrame;
         _frameTime = 0;
     }
+
+    public Rectangle GetFrameCoordinates() => _frames[_activeFrame - _startFrame];
 }
