@@ -50,8 +50,7 @@ public class Game1 : Game
             Exit();
         
         _playerController.Update();
-
-        // TODO: Add your update logic here
+        _playerView.Update(gameTime);
 
         base.Update(gameTime);
     }

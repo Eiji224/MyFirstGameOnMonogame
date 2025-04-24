@@ -10,7 +10,7 @@ public class PlayerController(Player player)
     public void Update()
     {
         HandleInput();
-        _player.MoveByGravitation(); // Прописать взаимодействие с платформой Velocity = 0
+        //_player.MoveByGravitation(); // Прописать взаимодействие с платформой Velocity = 0
     }
 
     private void HandleInput()
@@ -32,6 +32,11 @@ public class PlayerController(Player player)
         if (keyboard.IsKeyDown(Keys.D))
         {
             _player.Move(new Vector2(2.5f, 0));
+        }
+
+        if (keyboard.GetPressedKeyCount() == 0)
+        {
+            _player.ResetVelocity();
         }
     }
 }
