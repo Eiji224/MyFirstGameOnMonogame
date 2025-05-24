@@ -10,7 +10,7 @@ public class PlayerView(LevelModel level) : IView
     private Texture2D _playerTexture;
     private AnimationManager _runAnimation;
     
-    private readonly Point _playerDimensions = new Point(32, 32);
+    private readonly Point _playerDimensions = new (32, 32);
     
     public void LoadContent(ContentManager content)
     {
@@ -30,7 +30,7 @@ public class PlayerView(LevelModel level) : IView
             _runAnimation.ResetAnimationFrame();
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
         var isFlipped = _player.Direction.X < 0;
         

@@ -6,5 +6,5 @@ namespace Fathom;
 public interface IView
 {
     public void LoadContent(ContentManager content);
-    public void Draw(SpriteBatch spriteBatch);
+    public void Draw(SpriteBatch spriteBatch, Camera camera);
 }

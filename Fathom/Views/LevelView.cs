@@ -15,11 +15,14 @@ public class LevelView(LevelModel level) : IView
         _platformTexture = content.Load<Texture2D>("sandbrick_grass_platform");
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
         foreach (var platform in _level.Platforms)
         {
-            spriteBatch.Draw(_platformTexture, platform.Position, Color.White);
+            if (camera.IsInView(platform.BoundingBox))
+            {
+                spriteBatch.Draw(_platformTexture, platform.Position, Color.White);
+            }
         }
     }
 }

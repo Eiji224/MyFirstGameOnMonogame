@@ -16,7 +16,8 @@ public class Game1 : Game
     private PlayerView _playerView;
 
     private PlayerController _playerController;
-    
+    private Camera _camera;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -32,6 +33,11 @@ public class Game1 : Game
         _playerView = new PlayerView(_level);
 
         _playerController = new PlayerController(_level.Player, _level);
+        
+        _camera = new Camera(
+            new Vector2(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight),
+            new Vector2(1920f, 1080f) // размеры уровня (ширина, высота)
+        );
 
         base.Initialize();
     }
@@ -52,6 +58,8 @@ public class Game1 : Game
         _playerController.Update(gameTime);
         _playerView.Update(gameTime);
 
+        _camera.Follow(_level.Player);
+
         base.Update(gameTime);
     }
 
@@ -59,10 +67,10 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        _spriteBatch.Begin();
+        _spriteBatch.Begin(transformMatrix: _camera.TransformMatrix);
         
-        _levelView.Draw(_spriteBatch);
-        _playerView.Draw(_spriteBatch);
+        _levelView.Draw(_spriteBatch, _camera);
+        _playerView.Draw(_spriteBatch, _camera);
         
         _spriteBatch.End();
 
