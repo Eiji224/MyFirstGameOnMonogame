@@ -13,7 +13,7 @@ public class AnimationManager
     private float _frameTime;
     private readonly float _frameDelay;
     
-    private readonly Dictionary<int, Rectangle> _frames; // Целесообразно ли кэшировать Rectangles??
+    private readonly Dictionary<int, Rectangle> _frames;
 
     public AnimationManager(int startFrame, int endFrame, Point frameSize, float frameDelay)
     {
@@ -22,7 +22,7 @@ public class AnimationManager
         _activeFrame = startFrame;
         _frameDelay = frameDelay;
         
-        _frames = new Dictionary<int, Rectangle>(); // Целесообразно ли кэшировать Rectangles??
+        _frames = new Dictionary<int, Rectangle>();
         for (var i = startFrame; i <= endFrame; i++)
             _frames.Add(i, new Rectangle(i * frameSize.X, 0, frameSize.X, frameSize.Y));
     }

@@ -31,7 +31,7 @@ public class Game1 : Game
         _levelView = new LevelView(_level);
         _playerView = new PlayerView(_level);
 
-        _playerController = new PlayerController(_level.Player);
+        _playerController = new PlayerController(_level.Player, _level);
 
         base.Initialize();
     }
@@ -49,7 +49,7 @@ public class Game1 : Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
         
-        _playerController.Update();
+        _playerController.Update(gameTime);
         _playerView.Update(gameTime);
 
         base.Update(gameTime);

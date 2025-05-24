@@ -12,6 +12,8 @@ public class LevelModel
     public void Initialize()
     {
         Player = new Player(new Vector2(200, 20), 32, 32);
-        Platforms = [ new Platform(new Vector2(200, 100), 32, 16) ];
+        Platforms = [ new Platform(new Vector2(200, 100), 32, 16),
+            new Platform(new Vector2(300, 100), 32, 16),
+            new Platform(new Vector2(250, 150), 32, 16)];
     }
 }
