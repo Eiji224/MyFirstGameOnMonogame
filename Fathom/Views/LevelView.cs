@@ -5,24 +5,58 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Fathom;
 
-public class LevelView(LevelModel level) : IView
+public class LevelView : IView
 {
-    private readonly LevelModel _level = level;
-    private Texture2D _platformTexture;
-
+    private readonly LevelModel _level;
+    private readonly TileView _tileView;
+    private Texture2D _pixelTexture;
+    
+    public LevelView(LevelModel level)
+    {
+        _level = level;
+        _tileView = new TileView(level.TileMap);
+    }
+    
     public void LoadContent(ContentManager content)
     {
-        _platformTexture = content.Load<Texture2D>("sandbrick_grass_platform");
+        _tileView.LoadContent(content);
     }
-
+    
+    public void Update(GameTime gameTime)
+    {
+        
+    }
+    
     public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
-        foreach (var platform in _level.Platforms)
+        DrawBackground(spriteBatch, camera);
+        _tileView.Draw(spriteBatch, camera);
+    }
+    
+    private void DrawBackground(SpriteBatch spriteBatch, Camera camera)
+    {
+        var viewportBounds = new Rectangle(
+            (int)camera.Position.X,
+            (int)camera.Position.Y,
+            (int)camera.ViewportSize.X,
+            (int)camera.ViewportSize.Y
+        );
+        
+        spriteBatch.Draw(
+            GetPixelTexture(spriteBatch.GraphicsDevice),
+            viewportBounds,
+            null,
+            new Color(135, 206, 235) // Светло-голубой цвет для неба
+        );
+    }
+    
+    private Texture2D GetPixelTexture(GraphicsDevice graphicsDevice)
+    {
+        if (_pixelTexture == null)
         {
-            if (camera.IsInView(platform.BoundingBox))
-            {
-                spriteBatch.Draw(_platformTexture, platform.Position, Color.White);
-            }
+            _pixelTexture = new Texture2D(graphicsDevice, 1, 1);
+            _pixelTexture.SetData([Color.White]);
         }
+        return _pixelTexture;
     }
 }

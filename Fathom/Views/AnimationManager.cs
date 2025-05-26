@@ -46,5 +46,5 @@ public class AnimationManager
         _frameTime = 0;
     }
 
-    public Rectangle GetFrameCoordinates() => _frames[_activeFrame - _startFrame];
+    public Rectangle GetFrameCoordinates() => _frames[_activeFrame];
 }
