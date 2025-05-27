@@ -37,8 +37,8 @@ public class TileView :IView
                 if (x < 0 || y < 0 || x >= _tileMap.Width || y >= _tileMap.Height)
                     continue;
 
-                var tileId = _tileMap.GetTile(x, y);
-                if (tileId == 0)
+                var tile = _tileMap.GetTile(x, y);
+                if (tile == TileType.Empty)
                     continue;
 
                 var destinationRect = new Rectangle(
@@ -48,10 +48,10 @@ public class TileView :IView
                     TileMap.TileSize
                 );
                 
-                var texture = tileId switch
+                var texture = tile.Type switch
                 {
-                    1 => _groundTexture,
-                    2 => _platformTexture,
+                    TileType.Ground => _groundTexture,
+                    TileType.Platform => _platformTexture,
                     _ => _groundTexture
                 };
 

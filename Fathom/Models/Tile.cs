@@ -1,5 +1,3 @@
-/*using Microsoft.Xna.Framework;
-
 namespace Fathom;
 
 public enum TileType
@@ -8,31 +6,15 @@ public enum TileType
     Ground,
     Platform,
     Spike,
-    Checkpoint
+    Goal
 }
 
-public class Tile
+public class Tile(int x, int y, TileType? tileType = null)
 {
-    public TileType Type { get; }
-    public bool IsCollidable { get; }
-    public Rectangle BoundingBox { get; private set; }
+    public TileType Type { get; set; } = tileType ?? TileType.Empty;
+    public int X { get; } = x;
+    public int Y { get; } = y;
     
-    private const int TileSize = 32; // Размер тайла в пикселях
-    
-    public Tile(TileType type, Point position)
-    {
-        Type = type;
-        IsCollidable = type is TileType.Ground or TileType.Platform;
-        BoundingBox = new Rectangle(position.X * TileSize, position.Y * TileSize, TileSize, TileSize);
-    }
-    
-    public void UpdatePosition(Point position)
-    {
-        BoundingBox = new Rectangle(position.X * TileSize, position.Y * TileSize, TileSize, TileSize);
-    }
-    
-    public static Tile CreateTile(TileType type, Point position)
-    {
-        return new Tile(type, position);
-    }
-} */
+    public static bool operator == (Tile tile1, TileType tileType) => tile1 != null && tile1.Type == tileType;
+    public static bool operator != (Tile tile1, TileType tileType) => tile1 != null && tile1.Type != tileType;
+}

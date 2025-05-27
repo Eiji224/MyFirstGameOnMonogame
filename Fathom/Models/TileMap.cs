@@ -4,7 +4,7 @@ namespace Fathom;
 
 public class TileMap
 {
-    private readonly int[,] _tiles;
+    private readonly Tile[,] _tiles;
     public int Width { get; }
     public int Height { get; }
     public const int TileSize = 32;
@@ -13,28 +13,42 @@ public class TileMap
     {
         Width = width;
         Height = height;
-        _tiles = new int[width, height];
+        _tiles = InitializeMap(Width, Height);
     }
 
-    public int GetTile(int x, int y)
+    public static Tile[,] InitializeMap(int width, int height)
+    {
+        var map = new Tile[width, height];
+        for (var x = 0; x < width; x++)
+        {
+            for (var y = 0; y < height; y++)
+            {
+                map[x, y] = new Tile(x, y);
+            }
+        }
+
+        return map;
+    }
+
+    public Tile GetTile(int x, int y)
     {
         if (x < 0 || y < 0 || x >= Width || y >= Height)
-            return 0;
+            return new Tile(x, y);
         
         return _tiles[x, y];
     }
 
-    public void SetTile(int x, int y, int tileId)
+    public void SetTile(Tile tile)
     {
-        if (x < 0 || y < 0 || x >= Width || y >= Height)
+        if (tile.X < 0 || tile.Y < 0 || tile.X >= Width || tile.Y >= Height)
             return;
         
-        _tiles[x, y] = tileId;
+        _tiles[tile.X, tile.Y] = tile;
     }
 
     public bool IsWalkable(int x, int y)
     {
         var tile = GetTile(x, y);
-        return tile == 0;
+        return tile == TileType.Empty;
     }
 }
