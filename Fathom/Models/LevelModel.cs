@@ -16,7 +16,7 @@ public class LevelModel
         TileMap = new TileMap();
         levelGenerator.GenerateLevel(TileMap);
         
-        Player = new Player(new Vector2(100, 100), 25, 25);
+        Player = new Player(new Vector2(4 * TileMap.TileSize, (TileMap.Height - 4) * TileMap.TileSize), 25, 25);
     }
 
     public bool IsCollision(Rectangle boundingBox)

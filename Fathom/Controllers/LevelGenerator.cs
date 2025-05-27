@@ -7,6 +7,14 @@ namespace Fathom;
 public class LevelGenerator
 {
     private readonly Random _random;
+    private const int _maxJumpHeight = 3;
+    private const int _maxJumpDistance = 7;
+
+    private (int, int)[][] AnchorPoints =
+    [
+        [(0, 0), (7, 0), (4, 1), (7, 2), (1, 3), (5, 5)],
+        [(1, 0), (6, 0), (3, 1), (0, 2), (4, 3), (0, 5)]
+    ];
     
     public LevelGenerator(int? seed = null)
     {
@@ -50,9 +58,22 @@ public class LevelGenerator
             {
                 var tiles = TileMap.InitializeMap(sectWidth, sectHeight);
                 
+                var anchorTemplateIndex = _random.Next(0, AnchorPoints.Length);
                 var platformsLeft = _random.Next(1, 4);
+                for (; platformsLeft > 0; platformsLeft--)
+                {
+                    var anchorPointIndex = _random.Next(0, AnchorPoints[anchorTemplateIndex].Length);
+                    var anchorPoint = AnchorPoints[anchorTemplateIndex][anchorPointIndex];
+                    
+                    var platformLength = _random.Next(3, 6);
+                    for (var i = 0; i < platformLength && anchorPoint.Item1 + i < sectWidth; i++)
+                    {
+                        tiles[anchorPoint.Item1 + i, anchorPoint.Item2] = new Tile(sizeWidth + anchorPoint.Item1 + i,
+                            sizeHeight + anchorPoint.Item2, TileType.Platform);
+                    }
+                }
 
-                for (var y = 0; y < sectHeight; y++) // если фигня - поменять x и y местами
+                /*for (var y = 0; y < sectHeight; y++)
                 {
                     for (var x = 0; x < sectWidth; x++)
                     {
@@ -71,7 +92,7 @@ public class LevelGenerator
                         y += 2;
                         platformsLeft--;
                     }
-                }
+                }*/
 
                 tilesSections.Add(tiles);
             }
