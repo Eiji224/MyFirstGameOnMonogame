@@ -46,7 +46,7 @@ public class LevelView : IView
             GetPixelTexture(spriteBatch.GraphicsDevice),
             viewportBounds,
             null,
-            new Color(135, 206, 235) // Светло-голубой цвет для неба
+            new Color(135, 206, 235) // голубой цвет для неба
         );
     }
     

@@ -17,6 +17,20 @@ public class Camera
         _levelBounds = levelBounds;
     }
 
+    /*public void ShowEntireLevel()
+    {
+        var zoomX = ViewportSize.X / _levelBounds.X;
+        var zoomY = ViewportSize.Y / _levelBounds.Y;
+        Zoom = MathHelper.Min(zoomX, zoomY);
+        
+        Position = new Vector2(
+            (_levelBounds.X - ViewportSize.X / Zoom) / 2,
+            (_levelBounds.Y - ViewportSize.Y / Zoom) / 2
+        );
+
+        UpdateTransformMatrix();
+    }*/
+
     public void Follow(Player target)
     {
         Position = new Vector2(
@@ -29,6 +43,11 @@ public class Camera
             MathHelper.Clamp(Position.Y, 0, _levelBounds.Y - ViewportSize.Y / Zoom)
         );
         
+        UpdateTransformMatrix();
+    }
+
+    private void UpdateTransformMatrix()
+    {
         TransformMatrix = Matrix.CreateTranslation(new Vector3(-Position, 0)) *
                          Matrix.CreateScale(Zoom);
     }

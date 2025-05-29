@@ -9,7 +9,7 @@ public class TileMap
     public int Height { get; }
     public const int TileSize = 32;
 
-    public TileMap(int width = 400, int height = 230)
+    public TileMap(int width = 400, int height = 230) // width = 400; height = 230      80 74
     {
         Width = width;
         Height = height;
