@@ -7,7 +7,7 @@ namespace Fathom;
 public class Player(Vector2 position, int width, int height)
 {
     public Vector2 Position { get; set; } = position;
-    public Vector2 Direction { get; set; } = new(1, 0); // Начальное направление - вправо
+    public Vector2 Direction { get; set; } = new(1, 0);
     public Rectangle BoundingBox { get; private set; } = new((int)position.X, (int)position.Y, width, height);
     public Vector2 Velocity { get; set; } = Vector2.Zero;
     public bool IsOnGround { get; set; } = false;
@@ -16,18 +16,11 @@ public class Player(Vector2 position, int width, int height)
     {
         Position += velocity;
         
-        // Обновляем направление только при горизонтальном движении
         if (velocity.X != 0)
         {
             Direction = new Vector2(Math.Sign(velocity.X), 0);
         }
         
-        UpdateBoundingBox();
-    }
-
-    public void SetPosition(Vector2 position)
-    {
-        Position = position;
         UpdateBoundingBox();
     }
 

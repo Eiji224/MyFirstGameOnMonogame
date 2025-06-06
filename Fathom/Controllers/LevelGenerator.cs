@@ -79,8 +79,11 @@ public class LevelGenerator(int? seed = null, int width = 0, int height = 0)
 
     private List<Tile[,]> CreateLevelSections(TileMap tileMap)
     {
+        const int sectionWidthCoeff = 40;
+        const int sectionHeightCoeff = 37;
+        
         var tilesSections = new List<Tile[,]>();
-        var (sectionWidth, sectionHeight) = (tileMap.Width / 40, tileMap.Height / 37);
+        var (sectionWidth, sectionHeight) = (tileMap.Width / sectionWidthCoeff, tileMap.Height / sectionHeightCoeff);
         
         for (var sectionY = 0; sectionY < tileMap.Height; sectionY += SectionSize)
         {

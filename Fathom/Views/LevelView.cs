@@ -22,11 +22,6 @@ public class LevelView : IView
         _tileView.LoadContent(content);
     }
     
-    public void Update(GameTime gameTime)
-    {
-        
-    }
-    
     public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
         DrawBackground(spriteBatch, camera);
