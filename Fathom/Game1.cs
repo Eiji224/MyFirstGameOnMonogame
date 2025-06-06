@@ -56,8 +56,6 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        if (Keyboard.GetState().IsKeyDown(Keys.P))
-            _level._levelGenerator.AddMissingPlatforms(_level.TileMap);
         
         _playerController.Update(gameTime);
         _playerView.Update(gameTime);

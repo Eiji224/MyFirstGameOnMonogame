@@ -4,13 +4,24 @@ using Microsoft.Xna.Framework;
 
 namespace Fathom;
 
-public class LevelGenerator
+public class LevelGenerator(int? seed = null, int width = 0, int height = 0)
 {
-    private readonly Random _random;
-    private const int _maxJumpHeight = 3;
-    private const int _maxJumpDistance = 7;
+    private const int MaxJumpHeight = 3;
+    private const int MaxJumpDistance = 7;
+    private const int MinPlatformLength = 3;
+    private const int MaxPlatformLength = 6;
+    private const int MinPlatformsPerSection = 1;
+    private const int MaxPlatformsPerSection = 4;
+    private const int SectionSize = 10;
+    private const int GroundHeight = 3;
 
-    private (int, int)[][] AnchorPoints =
+    private readonly Random _random = seed.HasValue ? new Random(seed.Value) : new Random();
+    private readonly int _startX = 4;
+    private readonly int _startY = height - 4;
+    private readonly int _endX = width - 4;
+    private readonly int _endY = 0;
+
+    private static readonly (int X, int Y)[][] AnchorPoints =
     [
         [
             (0, 0), 
@@ -19,9 +30,6 @@ public class LevelGenerator
             (7, 2), 
             (1, 3), 
             (5, 5)
-            // -----------
-            //(0, 0),
-            //(1, 1)
         ],
         [
             (1, 0), 
@@ -30,31 +38,36 @@ public class LevelGenerator
             (0, 2), 
             (4, 3), 
             (0, 5)
-            // --------------
-            //(0, 1),
-            //(1, 0)
         ]
     ];
-    
-    private readonly int _startX;
-    private readonly int _startY;
-    private readonly int _endX;
-    private readonly int _endY;
-    
-    public LevelGenerator(int? seed = null, int width = 0, int height = 0)
-    {
-        _random = seed.HasValue ? new Random(seed.Value) : new Random();
-        
-        _startY = height - 4;
-        _startX = 4;
-        _endY = 0;
-        _endX = width - 4;
-    }
 
     public void GenerateLevel(TileMap tileMap)
     {
         GenerateGround(tileMap);
-        var sections = SplitLevelSections(tileMap);
+        GeneratePlatformSections(tileMap);
+        
+        if (!HasPathToEnd(tileMap))
+        {
+            AddMissingPlatforms(tileMap);
+        }
+        
+        CleanIsolatedPlatforms(tileMap);
+    }
+
+    private void GenerateGround(TileMap tileMap)
+    {
+        for (var x = 0; x < tileMap.Width; x++)
+        {
+            for (var y = tileMap.Height - GroundHeight; y < tileMap.Height; y++)
+            {
+                tileMap.SetTile(new Tile(x, y, TileType.Ground));
+            }
+        } 
+    }
+
+    private void GeneratePlatformSections(TileMap tileMap)
+    {
+        var sections = CreateLevelSections(tileMap);
         foreach (var section in sections)
         {
             foreach (var tile in section)
@@ -62,219 +75,233 @@ public class LevelGenerator
                 tileMap.SetTile(tile);
             }
         }
-        
-        if (!HasPathToEnd(tileMap))
-        {
-            AddMissingPlatforms(tileMap);
-        }
-        
-        CleanLevel(tileMap);
     }
 
-    private void GenerateGround(TileMap tileMap)
-    {
-        for (var x = 0; x < tileMap.Width; x++)
-        {
-            for (var y = tileMap.Height - 3; y < tileMap.Height; y++)
-            {
-                tileMap.SetTile(new Tile(x, y, TileType.Ground));
-            }
-        } 
-    }
-
-    private List<Tile[,]> SplitLevelSections(TileMap tileMap)
+    private List<Tile[,]> CreateLevelSections(TileMap tileMap)
     {
         var tilesSections = new List<Tile[,]>();
-        var (sectWidth, sectHeight) = (tileMap.Width / 40, tileMap.Height / 37);
+        var (sectionWidth, sectionHeight) = (tileMap.Width / 40, tileMap.Height / 37);
         
-        for (var sizeHeight = 0; sizeHeight < tileMap.Height; sizeHeight += 10)
+        for (var sectionY = 0; sectionY < tileMap.Height; sectionY += SectionSize)
         {
-            for (var sizeWidth = 0; sizeWidth < tileMap.Width; sizeWidth += 10)
+            for (var sectionX = 0; sectionX < tileMap.Width; sectionX += SectionSize)
             {
-                var tiles = TileMap.InitializeMap(sectWidth, sectHeight);
-                
-                var anchorTemplateIndex = _random.Next(0, AnchorPoints.Length);
-                var platformsLeft = _random.Next(1, 4);
-                for (; platformsLeft > 0; platformsLeft--)
-                {
-                    var anchorPointIndex = _random.Next(0, AnchorPoints[anchorTemplateIndex].Length);
-                    var anchorPoint = AnchorPoints[anchorTemplateIndex][anchorPointIndex];
-                    
-                    var platformLength = _random.Next(3, 6);
-                    for (var i = 0; i < platformLength && anchorPoint.Item1 + i < sectWidth; i++)
-                    {
-                        tiles[anchorPoint.Item1 + i, anchorPoint.Item2] = new Tile(sizeWidth + anchorPoint.Item1 + i,
-                            sizeHeight + anchorPoint.Item2, TileType.Platform);
-                    }
-                }
-
-                tilesSections.Add(tiles);
+                var sectionTiles = GenerateSection(sectionWidth, sectionHeight, sectionX, sectionY);
+                tilesSections.Add(sectionTiles);
             }
         }
         
         return tilesSections;
     }
+
+    private Tile[,] GenerateSection(int width, int height, int offsetX, int offsetY)
+    {
+        var tiles = TileMap.InitializeMap(width, height);
+        var templateIndex = _random.Next(0, AnchorPoints.Length);
+        var platformCount = _random.Next(MinPlatformsPerSection, MaxPlatformsPerSection);
+
+        for (var i = 0; i < platformCount; i++)
+        {
+            AddPlatformToSection(tiles, templateIndex, offsetX, offsetY, width);
+        }
+
+        return tiles;
+    }
+
+    private void AddPlatformToSection(Tile[,] tiles, int templateIndex, int offsetX, int offsetY, int width)
+    {
+        var anchorPointIndex = _random.Next(0, AnchorPoints[templateIndex].Length);
+        var anchorPoint = AnchorPoints[templateIndex][anchorPointIndex];
+        var platformLength = _random.Next(MinPlatformLength, MaxPlatformLength);
+
+        for (var i = 0; i < platformLength && anchorPoint.X + i < width; i++)
+        {
+            tiles[anchorPoint.X + i, anchorPoint.Y] = new Tile(
+                offsetX + anchorPoint.X + i,
+                offsetY + anchorPoint.Y,
+                TileType.Platform
+            );
+        }
+    }
     
     private bool HasPathToEnd(TileMap tileMap)
     {
         var visited = new bool[tileMap.Width, tileMap.Height + 1];
-        var queue = new Queue<(int x, int y)>();
+        var queue = new Queue<(int X, int Y)>();
         queue.Enqueue((_startX, _startY));
         visited[_startX, _startY] = true;
 
         while (queue.Count > 0)
         {
-            var (x, y) = queue.Dequeue();
+            var (currentX, currentY) = queue.Dequeue();
             
-            for (var dx = -_maxJumpDistance; dx <= _maxJumpDistance; dx++)
+            if (IsReachablePosition(currentX, currentY, _endX, _endY))
             {
-                for (var dy = -_maxJumpHeight; dy <= _maxJumpHeight; dy++)
-                {
-                    if (dx == 0 && dy == 0) continue;
+                return true;
+            }
 
-                    var newX = x + dx;
-                    var newY = y + dy;
-
-                    if (newX < 0 || newX >= tileMap.Width || newY < 0 || newY >= tileMap.Height)
-                        continue;
-
-                    if (visited[newX, newY])
-                        continue;
-
-                    var tile = tileMap.GetTile(newX, newY);
-                    if (tile == TileType.Platform || tile == TileType.Ground)
-                    {
-                        if (newX == _endX && newY == _endY)
-                            return true;
-                        visited[newX, newY] = true;
-                        queue.Enqueue((newX, newY));
-                    }
-                }
+            var reachablePositions = GetReachablePositions(tileMap, currentX, currentY, visited);
+            foreach (var (newX, newY) in reachablePositions)
+            {
+                visited[newX, newY] = true;
+                queue.Enqueue((newX, newY));
             }
         }
         return false;
     }
-    
-    public void AddMissingPlatforms(TileMap tileMap)
+
+    private List<(int X, int Y)> GetReachablePositions(TileMap tileMap, int currentX, int currentY, bool[,] visited)
     {
-        var visited = new bool[tileMap.Width, tileMap.Height];
-        var queue = new Queue<(int x, int y)>();
-        queue.Enqueue((_startX, _startY));
-        visited[_startX, _startY] = true;
-        (int x, int y)? lastReachable = null;
-        
-        while (queue.Count > 0)
+        var positions = new List<(int X, int Y)>();
+
+        for (var dx = -MaxJumpDistance; dx <= MaxJumpDistance; dx++)
         {
-            var (x, y) = queue.Dequeue();
-
-            for (var dx = -_maxJumpDistance; dx <= _maxJumpDistance; dx++)
+            for (var dy = -MaxJumpHeight; dy <= MaxJumpHeight; dy++)
             {
-                for (var dy = -_maxJumpHeight; dy <= _maxJumpHeight; dy++)
+                if (dx == 0 && dy == 0) continue;
+
+                var newX = currentX + dx;
+                var newY = currentY + dy;
+
+                if (!IsValidPosition(tileMap, newX, newY) || visited[newX, newY])
+                    continue;
+
+                var tile = tileMap.GetTile(newX, newY);
+                if (tile == TileType.Platform || tile == TileType.Ground)
                 {
-                    if (dx == 0 && dy == 0) continue;
-
-                    var newX = x + dx;
-                    var newY = y + dy;
-
-                    if (newX < 0 || newX >= tileMap.Width || newY < 0 || newY >= tileMap.Height)
-                        continue;
-
-                    if (visited[newX, newY])
-                        continue;
-
-                    var tile = tileMap.GetTile(newX, newY);
-                    if (tile == TileType.Platform || tile == TileType.Ground)
-                    {
-                        visited[newX, newY] = true;
-                        queue.Enqueue((newX, newY));
-                        lastReachable = (newX, newY);
-                    }
+                    positions.Add((newX, newY));
                 }
             }
         }
 
-        if (lastReachable.HasValue)
+        return positions;
+    }
+
+    private static bool IsValidPosition(TileMap tileMap, int x, int y)
+    {
+        return x >= 0 && x < tileMap.Width && y >= 0 && y < tileMap.Height;
+    }
+
+    private static bool IsReachablePosition(int currentX, int currentY, int targetX, int targetY)
+    {
+        return currentX == targetX && currentY == targetY;
+    }
+    
+    private void AddMissingPlatforms(TileMap tileMap)
+    {
+        var (lastReachableX, lastReachableY) = FindLastReachablePosition(tileMap);
+        if (lastReachableX.HasValue && lastReachableY.HasValue)
         {
-            var (startX, startY) = lastReachable.Value;
-            var targetX = _endX;
-            var targetY = _endY;
-            
-            while (startX < targetX)
-            {
-                var dx = Math.Min(_maxJumpDistance, targetX - startX);
-                var newX = startX + dx;
-                var newY = startY;
-                
-                if (newY >= 0 && newY < tileMap.Height)
-                {
-                    for (var i = 0; i < 3; i++)
-                    {
-                        if (newX + i < tileMap.Width)
-                        {
-                            tileMap.SetTile(new Tile(newX + i, newY, TileType.Platform));
-                        }
-                    }
-                    startX = newX;
-                }
-                else
-                {
-                    for (var dy = -_maxJumpHeight; dy <= _maxJumpHeight; dy++)
-                    {
-                        newY = startY + dy;
-                        if (newY >= 0 && newY < tileMap.Height && tileMap.GetTile(newX, newY) == TileType.Empty)
-                        {
-                            for (var i = 0; i < 3; i++)
-                            {
-                                if (newX + i < tileMap.Width)
-                                {
-                                    tileMap.SetTile(new Tile(newX + i, newY, TileType.Platform));
-                                }
-                            }
-                            startX = newX;
-                            startY = newY;
-                            break;
-                        }
-                    }
-                }
-            }
+            BuildPathToEnd(tileMap, lastReachableX.Value, lastReachableY.Value);
         }
     }
 
-    private bool IsIsolated(TileMap tileMap, int x, int y)
+    private (int? X, int? Y) FindLastReachablePosition(TileMap tileMap)
     {
-        for (var i = -1; i <= 1; i++)
-        {
-            for (var j = -1; j <= 1; j++)
-            {
-                if (i == 0 && j == 0)
-                    continue;
-                
-                var checkX = x + i;
-                var checkY = y + j;
+        var visited = new bool[tileMap.Width, tileMap.Height];
+        var queue = new Queue<(int X, int Y)>();
+        queue.Enqueue((_startX, _startY));
+        visited[_startX, _startY] = true;
+        int? lastX = null, lastY = null;
 
-                if (checkX < 0 || checkX >= tileMap.Width || checkY < 0 || checkY >= tileMap.Height)
-                    continue;
-                
-                var neighborTile = tileMap.GetTile(checkX, checkY);
-                if (neighborTile != TileType.Empty)
+        while (queue.Count > 0)
+        {
+            var (currentX, currentY) = queue.Dequeue();
+            var reachablePositions = GetReachablePositions(tileMap, currentX, currentY, visited);
+
+            foreach (var (newX, newY) in reachablePositions)
+            {
+                visited[newX, newY] = true;
+                queue.Enqueue((newX, newY));
+                lastX = newX;
+                lastY = newY;
+            }
+        }
+
+        return (lastX, lastY);
+    }
+
+    private void BuildPathToEnd(TileMap tileMap, int startX, int startY)
+    {
+        var currentX = startX;
+        var currentY = startY;
+
+        while (currentX < _endX)
+        {
+            var (nextX, nextY) = CalculateNextPlatformPosition(tileMap, currentX, currentY);
+            CreatePlatform(tileMap, nextX, nextY);
+            currentX = nextX;
+            currentY = nextY;
+        }
+    }
+
+    private (int X, int Y) CalculateNextPlatformPosition(TileMap tileMap, int currentX, int currentY)
+    {
+        var dx = Math.Min(MaxJumpDistance, _endX - currentX);
+        var newX = currentX + dx;
+        var newY = currentY;
+
+        if (!IsValidPosition(tileMap, newX, newY))
+        {
+            for (var dy = -MaxJumpHeight; dy <= MaxJumpHeight; dy++)
+            {
+                newY = currentY + dy;
+                if (IsValidPosition(tileMap, newX, newY) && tileMap.GetTile(newX, newY) == TileType.Empty)
                 {
-                    return false;
+                    break;
+                }
+            }
+        }
+
+        return (newX, newY);
+    }
+
+    private static void CreatePlatform(TileMap tileMap, int x, int y)
+    {
+        const int platformLength = 3;
+        for (var i = 0; i < platformLength; i++)
+        {
+            if (x + i < tileMap.Width)
+            {
+                tileMap.SetTile(new Tile(x + i, y, TileType.Platform));
+            }
+        }
+    }
+    
+    private static bool IsIsolated(TileMap tileMap, int x, int y)
+    {
+        for (var dx = -1; dx <= 1; dx++)
+        {
+            for (var dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0)
+                    continue;
+
+                var checkX = x + dx;
+                var checkY = y + dy;
+
+                if (IsValidPosition(tileMap, checkX, checkY))
+                {
+                    var tile = tileMap.GetTile(checkX, checkY);
+                    if (tile == TileType.Platform || tile == TileType.Ground)
+                    {
+                        return false;
+                    }
                 }
             }
         }
         return true;
     }
-
-    private void CleanLevel(TileMap tileMap)
+    
+    private static void CleanIsolatedPlatforms(TileMap tileMap)
     {
         for (var x = 0; x < tileMap.Width; x++)
         {
             for (var y = 0; y < tileMap.Height; y++)
             {
-                var currentTile = tileMap.GetTile(x, y);
-                if (currentTile != TileType.Empty && IsIsolated(tileMap, x, y))
+                if (tileMap.GetTile(x, y) == TileType.Platform && IsIsolated(tileMap, x, y))
                 {
-                    tileMap.SetTile(new Tile(x, y));
+                    tileMap.SetTile(new Tile(x, y, TileType.Empty));
                 }
             }
         }
