@@ -45,10 +45,4 @@ public class TileMap
         
         _tiles[tile.X, tile.Y] = tile;
     }
-
-    public bool IsWalkable(int x, int y)
-    {
-        var tile = GetTile(x, y);
-        return tile == TileType.Empty;
-    }
 }

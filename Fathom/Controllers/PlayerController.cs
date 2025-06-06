@@ -11,14 +11,12 @@ public class PlayerController(Player player, LevelModel levelModel)
     private const float JumpForce = -8f;
     private const float MoveSpeed = 4f;
     private const float GravityAcceleration = 15f;
-    
-    //private bool _wasJumpKeyPressed = false;
 
     public void Update(GameTime gameTime)
     {
         var previousPosition = _player.Position;
         
-        HandleInput(gameTime);
+        HandleInput();
         ApplyGravity(gameTime);
         
         var horizontalMovement = new Vector2(_player.Velocity.X, 0);
@@ -57,7 +55,7 @@ public class PlayerController(Player player, LevelModel levelModel)
         _player.UpdateBoundingBox();
     }
 
-    private void HandleInput(GameTime gameTime)
+    private void HandleInput()
     {
         var keyboard = Keyboard.GetState();
         
@@ -83,8 +81,6 @@ public class PlayerController(Player player, LevelModel levelModel)
             _player.Velocity = new Vector2(_player.Velocity.X, JumpForce);
             _player.IsOnGround = false;
         }
-        
-        //_wasJumpKeyPressed = isJumpKeyDown;
     }
 
     private void ApplyGravity(GameTime gameTime)

@@ -242,7 +242,6 @@ public class LevelGenerator
 
     private bool IsIsolated(TileMap tileMap, int x, int y)
     {
-        // Тайл считается изолированным, если вокруг него нет других твердых тайлов
         for (var i = -1; i <= 1; i++)
         {
             for (var j = -1; j <= 1; j++)

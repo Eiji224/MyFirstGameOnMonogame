@@ -9,7 +9,7 @@ public class Camera
     public Matrix TransformMatrix { get; private set; }
     
     private Vector2 _levelBounds;
-    private float Zoom { get; } = 1f;
+    private const float _zoom = 1f;
 
     public Camera(Vector2 viewportSize, Vector2 levelBounds)
     {
@@ -17,30 +17,16 @@ public class Camera
         _levelBounds = levelBounds;
     }
 
-    /*public void ShowEntireLevel()
-    {
-        var zoomX = ViewportSize.X / _levelBounds.X;
-        var zoomY = ViewportSize.Y / _levelBounds.Y;
-        Zoom = MathHelper.Min(zoomX, zoomY);
-        
-        Position = new Vector2(
-            (_levelBounds.X - ViewportSize.X / Zoom) / 2,
-            (_levelBounds.Y - ViewportSize.Y / Zoom) / 2
-        );
-
-        UpdateTransformMatrix();
-    }*/
-
     public void Follow(Player target)
     {
         Position = new Vector2(
-            target.Position.X + (target.BoundingBox.Width / 2) - (ViewportSize.X / Zoom / 2),
-            target.Position.Y + (target.BoundingBox.Height / 2) - (ViewportSize.Y / Zoom / 2)
+            target.Position.X + (target.BoundingBox.Width / 2) - (ViewportSize.X / _zoom / 2),
+            target.Position.Y + (target.BoundingBox.Height / 2) - (ViewportSize.Y / _zoom / 2)
         );
         
         Position = new Vector2(
-            MathHelper.Clamp(Position.X, 0, _levelBounds.X - ViewportSize.X / Zoom),
-            MathHelper.Clamp(Position.Y, 0, _levelBounds.Y - ViewportSize.Y / Zoom)
+            MathHelper.Clamp(Position.X, 0, _levelBounds.X - ViewportSize.X / _zoom),
+            MathHelper.Clamp(Position.Y, 0, _levelBounds.Y - ViewportSize.Y / _zoom)
         );
         
         UpdateTransformMatrix();
@@ -49,17 +35,6 @@ public class Camera
     private void UpdateTransformMatrix()
     {
         TransformMatrix = Matrix.CreateTranslation(new Vector3(-Position, 0)) *
-                         Matrix.CreateScale(Zoom);
+                         Matrix.CreateScale(_zoom);
     }
-
-    /*public bool IsInView(Rectangle objectBounds)
-    {
-        var cameraBounds = new Rectangle(
-            (int)Position.X,
-            (int)Position.Y,
-            (int)(ViewportSize.X / Zoom),
-            (int)(ViewportSize.Y / Zoom)
-        );
-        return cameraBounds.Intersects(objectBounds);
-    }*/
 }
